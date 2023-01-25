@@ -6,12 +6,6 @@ ptn_escape = re.compile(r'\033\[.*?m')
 def declip(s):
 	return ptn_escape.sub('', s)
 
-def justzen(s, w):
-	len_displayed = len(declip(s))
-	if w>len_displayed:
-		return s + '　'*(w-len_displayed)
-	else:
-		return s
 
 def clean_row():
 	w, _ = os.get_terminal_size()
