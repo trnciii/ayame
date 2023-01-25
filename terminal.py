@@ -37,10 +37,7 @@ def color(name, k='f'):
 		'bl': 10
 	}
 
-	assert name in table.keys()
-	assert k in kind.keys()
-
-	return str(kind[k]) + str(table[name])
+	return f'{kind[k]}{table[name]}'
 
 
 def reset_all():
