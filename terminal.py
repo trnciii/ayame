@@ -87,6 +87,7 @@ def move_cursor(n):
 
 if os.name == 'nt':
 	import msvcrt, sys
+	from . import zen
 
 	def query(q, end):
 		sys.stdout.write(q)
@@ -116,7 +117,7 @@ if os.name == 'nt':
 			for i, (item, s) in enumerate(zip(items, selected)):
 				clean_row()
 				option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
-				if len(option) > maxlen:
+				if zen.display_length(option) > maxlen:
 					option = option[:maxlen] + '...'
 				print(option + reset())
 
@@ -147,6 +148,7 @@ if os.name == 'nt':
 
 elif os.name == 'posix':
 	import termios, sys
+	from . import zen
 
 	def query(q, end):
 		fd = sys.stdout.fileno()
@@ -198,7 +200,7 @@ elif os.name == 'posix':
 				for i, (item, s) in enumerate(zip(items, selected)):
 					clean_row()
 					option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
-					if len(option) > maxlen:
+					if zen.display_length(option) > maxlen:
 						option = option[:maxlen] + '...'
 					print(option + reset())
 
