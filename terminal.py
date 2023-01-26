@@ -106,7 +106,7 @@ if os.name == 'nt':
 		print(mod(" { space: toggle, 'a': all, 'c': clear }", color('yellow', 'fl')))
 
 		w, _ = os.get_terminal_size()
-		maxlen = w-5
+		maxlen = w-3
 
 		n = len(items)
 		selected = [False]*n
@@ -118,7 +118,7 @@ if os.name == 'nt':
 				clean_row()
 				option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
 				if zen.display_length(option) > maxlen:
-					option = option[:maxlen] + '...'
+					option = zen.trim(option, maxlen) + '...'
 				print(option + reset())
 
 			ch = msvcrt.getch()
@@ -189,7 +189,7 @@ elif os.name == 'posix':
 			print(mod("{ space: toggle, 'a': all, 'c': clear, 'q': quit }", color('yellow', 'fl')))
 
 			w, _ = os.get_terminal_size()
-			maxlen = w-5
+			maxlen = w-3
 
 			n = len(items)
 			selected = [False]*n
@@ -201,7 +201,7 @@ elif os.name == 'posix':
 					clean_row()
 					option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
 					if zen.display_length(option) > maxlen:
-						option = option[:maxlen] + '...'
+						option = zen.trim(option, maxlen) + '...'
 					print(option + reset())
 
 				ch = sys.stdin.read(1)
