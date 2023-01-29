@@ -2,6 +2,9 @@ import re
 import os
 from sys import stdout
 
+def write_with_encoding(s, encoding=None, errors='backslashreplace'):
+	stdout.buffer.write(s.encode(encoding if encoding else stdout.encoding, errors=errors))
+
 ptn_escape = re.compile(r'\033\[.*?m')
 
 def declip(s):
