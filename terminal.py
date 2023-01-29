@@ -1,5 +1,6 @@
 import re
 import os
+from sys import stdout
 
 ptn_escape = re.compile(r'\033\[.*?m')
 
@@ -71,11 +72,16 @@ def strikeline():
 	return '9'
 
 
-def reset():
-	return '\033[m'
+if stdout.isatty():
+	def mod(s, *cc): return f'\033[{";".join(cc)}m' + s + reset()
 
-def mod(s, *cc):
-	return f'\033[{";".join(cc)}m' + s + reset()
+	def reset(): return '\033[m'
+
+else:
+	def mod(s, *cc): return s
+
+	def reset(): return ''
+
 
 
 def move_cursor(n):
