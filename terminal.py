@@ -94,7 +94,11 @@ def move_cursor(n):
 		print(f'\033[{n}B')
 
 
-if os.name == 'nt':
+if not stdout.isatty():
+	def select(items):
+		return [True]*len(items)
+
+elif os.name == 'nt':
 	import msvcrt, sys
 	from . import zen
 
