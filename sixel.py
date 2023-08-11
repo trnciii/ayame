@@ -39,14 +39,15 @@ def check():
 
 def fit(image, size):
 	w, h = image.size
-	r = min(size[0]/w, size[1]/h)
-	w, h = int(r*w), int(r*h)
-	return image.resize((w, h))
+	sw, sh = size
+	r = min(sw/w if sw else 1, sh/h if sh else 1)
+	return image.resize((int(r*w), int(r*h)))
 
 
 def limit(image, size):
 	w, h = image.size
-	r = min(size[0]/w, size[1]/h)
+	sw, sh = size
+	r = min(sw/w if sw else 1, sh/h if sh else 1)
 	return image.resize((int(r*w), int(r*h))) if r<1 else image
 
 
