@@ -17,10 +17,7 @@ def clean_row():
 
 
 def rgb(r, g, b, bg='f'):
-	if bg in ['b', 'bg', 'background']:
-		return f'48;2;{r};{g};{b}'
-	else:
-		return f'38;2;{r};{g};{b}'
+	return f'48;2;{r};{g};{b}' if bg in ['b', 'bg', 'background'] else f'38;2;{r};{g};{b}'
 
 def color(name, k='f'):
 	table = {
@@ -81,7 +78,7 @@ if stdout.isatty():
 	def reset(): return '\033[m'
 
 else:
-	def mod(s, *cc): return s
+	def mod(s, *_): return s
 
 	def reset(): return ''
 
@@ -140,8 +137,8 @@ elif os.name == 'nt':
 			if ch == b'\r':
 				return selected
 
-			elif (ch == b'\x03') or (ch == b'q'):
-				exit()
+			if ch in (b'\x03', b'q'):
+				sys.exit()
 
 			elif ch == b'a':
 				selected = [True]*n
@@ -223,8 +220,8 @@ elif os.name == 'posix':
 				if ch == '\n':
 					return selected
 
-				elif ch == 'q':
-					exit()
+				if ch == 'q':
+					sys.exit()
 
 				elif ch == 'a':
 					selected = [True]*n
@@ -246,4 +243,4 @@ elif os.name == 'posix':
 			termios.tcsetattr(fd, termios.TCSANOW, old)
 
 else:
-	raise InportError('terminal working on unknown os.')
+	raise ImportError('terminal working on unknown os.')

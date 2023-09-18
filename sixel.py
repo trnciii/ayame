@@ -1,7 +1,6 @@
-from PIL import Image
+import re
 from io import BytesIO
 from . import terminal
-import re
 
 libsixel = None
 
@@ -31,7 +30,7 @@ def check():
 		print('terminal does not support sixel')
 	except ImportError:
 		print('failed to import libsixel')
-	except Exception as e:
+	except Exception:
 		import traceback, sys
 		traceback.print_exc(file=sys.stdout)
 
@@ -72,10 +71,10 @@ def to_sixel(image):
 			libsixel.sixel_dither_set_palette(dither, palette)
 			libsixel.sixel_dither_set_pixelformat(dither, libsixel.SIXEL_PIXELFORMAT_PAL8)
 		elif image.mode == 'L':
-			dither = sixel_dither_get(libsixel.SIXEL_BUILTIN_G8)
+			dither = libsixel.sixel_dither_get(libsixel.SIXEL_BUILTIN_G8)
 			libsixel.sixel_dither_set_pixelformat(dither, libsixel.SIXEL_PIXELFORMAT_G8)
 		elif image.mode == '1':
-			dither = sixel_dither_get(libsixel.SIXEL_BUILTIN_G1)
+			dither = libsixel.sixel_dither_get(libsixel.SIXEL_BUILTIN_G1)
 			libsixel.sixel_dither_set_pixelformat(dither, libsixel.SIXEL_PIXELFORMAT_G1)
 		else:
 			raise RuntimeError('unexpected image mode')
