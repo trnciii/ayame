@@ -27,14 +27,13 @@ def check():
 		import libsixel
 		print('supported')
 
+	except AssertionError:
+		print('terminal does not support sixel')
+	except ImportError:
+		print('failed to import libsixel')
 	except Exception as e:
-		if type(e) == AssertionError:
-			print('terminal does not support sixel')
-		elif type(e) == ImportError:
-			print('failed to import libsixel')
-		else:
-			import traceback, sys
-			traceback.print_exc(file=sys.stdout)
+		import traceback, sys
+		traceback.print_exc(file=sys.stdout)
 
 
 def fit(image, size):
