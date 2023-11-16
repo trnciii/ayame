@@ -90,6 +90,30 @@ def move_cursor(n):
 	elif n>0:
 		print(f'\033[{n}B')
 
+def selected(items):
+	return [i for i, b in zip(items, select(items)) if b]
+
+
+def get_select_max_width():
+	w, _ = os.get_terminal_size()
+	return w-3
+
+def select_all(selected):
+	if all(selected):
+		return [False for _ in selected]
+	else:
+		return [True for _ in selected]
+
+def select_display_options(cursor, items, selected):
+	max_width = get_select_max_width()
+	print(mod("↑↓ to move, space to select, 'A' for all", color('yellow', 'fl')))
+	for i, (item, s) in enumerate(zip(items, selected)):
+		clean_row()
+		option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
+		if zen.display_length(option) > max_width:
+			option = zen.trim(option, max_width) + '...'
+		print(option + reset())
+
 
 if not stdout.isatty():
 	def select(items):
@@ -113,23 +137,11 @@ elif os.name == 'nt':
 
 
 	def select(items):
-		print(mod(" { space: toggle, 'a': all, 'c': clear }", color('yellow', 'fl')))
-
-		w, _ = os.get_terminal_size()
-		maxlen = w-3
-
 		n = len(items)
 		selected = [False]*n
 		cursor = 0
 		while True:
-			cursor = max(0, min(cursor, n-1))
-
-			for i, (item, s) in enumerate(zip(items, selected)):
-				clean_row()
-				option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
-				if zen.display_length(option) > maxlen:
-					option = zen.trim(option, maxlen) + '...'
-				print(option + reset())
+			select_display_options(cursor, items, selected)
 
 			ch = msvcrt.getch()
 			# print(ch)
@@ -141,20 +153,18 @@ elif os.name == 'nt':
 				sys.exit()
 
 			elif ch == b'a':
-				selected = [True]*n
-			elif ch == b'c':
-				selected = [False]*n
+				selected = select_all(selected)
 			elif ch == b' ':
 				selected[cursor] = not selected[cursor]
 
 			elif ch == b'\xe0':
 				ch = msvcrt.getch()
 				if ch == b'H':
-					cursor -= 1
+					cursor = (cursor-1) % n
 				elif ch == b'P':
-					cursor += 1
+					cursor = (cursor+1) % n
 
-			move_cursor(-n-1)
+			move_cursor(-n-2)
 
 elif os.name == 'posix':
 	import termios, sys
@@ -196,23 +206,11 @@ elif os.name == 'posix':
 		try:
 			termios.tcsetattr(fd, termios.TCSANOW, tc)
 
-			print(mod("{ space: toggle, 'a': all, 'c': clear, 'q': quit }", color('yellow', 'fl')))
-
-			w, _ = os.get_terminal_size()
-			maxlen = w-3
-
 			n = len(items)
 			selected = [False]*n
 			cursor = 0
 			while True:
-				cursor = max(0, min(cursor, n-1))
-
-				for i, (item, s) in enumerate(zip(items, selected)):
-					clean_row()
-					option = ('>' if cursor==i else ' ') + ('[x]' if s else '[ ]') + ' ' + item
-					if zen.display_length(option) > maxlen:
-						option = zen.trim(option, maxlen) + '...'
-					print(option + reset())
+				select_display_options(cursor, items, selected)
 
 				ch = sys.stdin.read(1)
 				# print(ch)
@@ -224,20 +222,18 @@ elif os.name == 'posix':
 					sys.exit()
 
 				elif ch == 'a':
-					selected = [True]*n
-				elif ch == 'c':
-					selected = [False]*n
+					selected = select_all(selected)
 				elif ch == ' ':
 					selected[cursor] = not selected[cursor]
 
 				elif ch == '\x1b':
 					ch = sys.stdin.read(2)
 					if ch == '[A':
-						cursor -= 1
+						cursor = (cursor-1)%n
 					elif ch == '[B':
-						cursor += 1
+						cursor = (cursor+1)%n
 
-				move_cursor(-n-1)
+				move_cursor(-n-2)
 
 		finally:
 			termios.tcsetattr(fd, termios.TCSANOW, old)
