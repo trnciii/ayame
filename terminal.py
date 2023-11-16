@@ -90,8 +90,8 @@ def move_cursor(n):
 	elif n>0:
 		print(f'\033[{n}B')
 
-def selected(items):
-	return [i for i, b in zip(items, select(items)) if b]
+def selected(items, rep=str):
+	return [i for i, b in zip(items, select([rep(i) for i in items])) if b]
 
 
 def get_select_max_width():
