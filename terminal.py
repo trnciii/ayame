@@ -90,8 +90,8 @@ def move_cursor(n):
 	elif n>0:
 		print(f'\033[{n}B')
 
-def selected(items, rep=str):
-	return [i for i, b in zip(items, select([rep(i) for i in items])) if b]
+def selected(items, format=str, default=None):
+	return [i for i, b in zip(items, select([format(i) for i in items], default)) if b]
 
 
 def get_select_max_width():
@@ -116,8 +116,8 @@ def select_display_options(cursor, items, selected):
 
 
 if not stdout.isatty():
-	def select(items):
-		return [True]*len(items)
+	def select(items, default=None):
+		return default if default else [True]*len(items)
 
 elif os.name == 'nt':
 	import msvcrt, sys
@@ -136,9 +136,9 @@ elif os.name == 'nt':
 		return s
 
 
-	def select(items):
+	def select(items, default=None):
 		n = len(items)
-		selected = [False]*n
+		selected = default if default else [False]*n
 		cursor = 0
 		while True:
 			select_display_options(cursor, items, selected)
@@ -196,7 +196,7 @@ elif os.name == 'posix':
 		return s
 
 
-	def select(items):
+	def select(items, default=None):
 		fd = sys.stdout.fileno()
 
 		old = termios.tcgetattr(fd)
@@ -207,7 +207,7 @@ elif os.name == 'posix':
 			termios.tcsetattr(fd, termios.TCSANOW, tc)
 
 			n = len(items)
-			selected = [False]*n
+			selected = default if default else [False]*n
 			cursor = 0
 			while True:
 				select_display_options(cursor, items, selected)
