@@ -90,8 +90,8 @@ def move_cursor(n):
 	elif n>0:
 		print(f'\033[{n}B')
 
-def selected(items, format=str, default=None):
-	return [i for i, b in zip(items, select([format(i) for i in items], default)) if b]
+def selected(items, to_string=str, default=None):
+	return [i for b, i in select(items, to_string, default) if b]
 
 
 def get_select_max_width():
@@ -136,18 +136,18 @@ elif os.name == 'nt':
 		return s
 
 
-	def select(items, default=None):
+	def select(items, to_string=str, default=None):
 		n = len(items)
 		selected = default if default else [False]*n
 		cursor = 0
 		while True:
-			select_display_options(cursor, items, selected)
+			select_display_options(cursor, map(to_string, items), selected)
 
 			ch = msvcrt.getch()
 			# print(ch)
 
 			if ch == b'\r':
-				return selected
+				return zip(selected, items)
 
 			if ch in (b'\x03', b'q'):
 				sys.exit()
@@ -196,7 +196,7 @@ elif os.name == 'posix':
 		return s
 
 
-	def select(items, default=None):
+	def select(items, to_string=str, default=None):
 		fd = sys.stdout.fileno()
 
 		old = termios.tcgetattr(fd)
@@ -210,13 +210,13 @@ elif os.name == 'posix':
 			selected = default if default else [False]*n
 			cursor = 0
 			while True:
-				select_display_options(cursor, items, selected)
+				select_display_options(cursor, map(to_string, items), selected)
 
 				ch = sys.stdin.read(1)
 				# print(ch)
 
 				if ch == '\n':
-					return selected
+					return zip(selected, items)
 
 				if ch == 'q':
 					sys.exit()
