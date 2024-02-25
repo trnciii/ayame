@@ -1,4 +1,5 @@
 import unicodedata as uc
+import os
 from .terminal import declip, ptn_escape
 
 def ret_to_width(r):
@@ -10,6 +11,10 @@ def char_to_width(c):
 
 def display_length(s):
 	return sum(map(ret_to_width, map(uc.east_asian_width, declip(s))))
+
+def display_height(s):
+	w, _ = os.get_terminal_size()
+	return display_length(s) // w + 1
 
 
 def ljust(s, w):
