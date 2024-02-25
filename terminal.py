@@ -12,13 +12,13 @@ def declip(s):
 
 
 def clean_row():
-	w, _ = os.get_terminal_size()
-	print('\r' + ' '*(w-1), end='\r', flush=True)
+	print('\033[2K', end='\r')
 
 def clean_rows(n):
-	w, _ = os.get_terminal_size()
-	print('\r' + (f'{" "*(w-1)}\n'*n), end='\r')
-	move_cursor(-n-1)
+	print('\033[1F'.join('\033[2K' for _ in range(n)), end='')
+
+def clean_screen():
+	print('\033[2J\033[H', end='')
 
 def rgb(r, g, b, bg='f'):
 	return f'48;2;{r};{g};{b}' if bg in ['b', 'bg', 'background'] else f'38;2;{r};{g};{b}'
@@ -90,9 +90,9 @@ else:
 
 def move_cursor(n):
 	if n<0:
-		print(f'\033[{-n}A')
+		print(f'\033[{-n}A', end='')
 	elif n>0:
-		print(f'\033[{n}B')
+		print(f'\033[{n}B', end='')
 
 def selected(pager, page=1, to_string=str, default=None):
 	if isinstance(pager, list):
@@ -142,9 +142,44 @@ class SinglePager:
 	def max_page(self):
 		return 1
 
+
+def fill(lines, max_height):
+	w, h = os.get_terminal_size()
+	clean_rows(max_height)
+	true_height = 0
+	for line in lines:
+		true_height += zen.display_height(line)
+		diff = true_height - max_height
+		if diff < 0:
+			print(line)
+		elif diff == 0:
+			print(line, end='', flush=True)
+			break
+		else:
+			print(zen.trim(line, diff*w), end='', flush=True)
+			break
+
+def extend_to_range(itr, lines, begin, height, preview):
+	while len(lines) - begin < height:
+		try:
+			lines.append(next(itr))
+			preview(lines[begin:], height)
+		except StopIteration:
+			return True
+	return False
+
+def append_eof(lines, eof, end):
+	yield from lines
+	if end:
+		yield eof()
+
+
 if not stdout.isatty():
 	def select(pager, page, to_string=str, default=None):
 		return default if default else [(i, True) for i, _ in pager.flip(page).to_list()]
+
+	def scroll(itr, eof=lambda:'[EOF]'):
+		write_with_encoding('\n'.join(itr))
 
 elif os.name == 'nt':
 	import msvcrt, sys
@@ -206,8 +241,43 @@ elif os.name == 'nt':
 				elif ch == b'K' and page > 1:
 					page -= 1
 
-			move_cursor(-height-1)
-			clean_rows(height)
+			clean_rows(height+1)
+
+	def scroll(itr, eof=lambda:'[EOF]'):
+		_, height = os.get_terminal_size()
+		print('\n'*(height-1), end='')
+		lines = []
+		begin = 0
+		while True:
+			_, height = os.get_terminal_size()
+			end = extend_to_range(itr, lines, begin, height, fill)
+
+			if end and len(lines)<=height and sum(map(zen.display_height, lines)) <= height:
+				return # fill is already called in extend_to_range
+
+			fill(append_eof(lines[begin:], eof, end), height)
+
+			ch = msvcrt.getch()
+			if ch == b'q' or ch == b'\x03':
+				print()
+				return
+			elif ch == b'\xe0':
+				ch = msvcrt.getch()
+				# print(ch)
+				if ch == b'H' and begin > 0:
+					begin -= 1
+				elif ch == b'P' and not (end and begin > len(lines)-2):
+					begin += 1
+				elif ch == b'I':
+					begin = max(0, begin - height)
+				elif ch == b'Q':
+					if (not end) or begin+height < len(lines):
+						begin += height
+				elif ch == b'G':
+					begin = 0
+				elif ch == b'O':
+					begin = len(lines)-height
+
 
 elif os.name == 'posix':
 	import termios, sys
@@ -291,10 +361,56 @@ elif os.name == 'posix':
 					elif ch == '[D' and page > 1:
 						page -= 1
 
-				move_cursor(-height-1)
-				clean_rows(height)
+				clean_rows(height+1)
 
 		finally:
+			termios.tcsetattr(fd, termios.TCSANOW, old)
+
+	def scroll(itr, eof=lambda:'[EOF]'):
+		fd = sys.stdout.fileno()
+
+		old = termios.tcgetattr(fd)
+		tc = termios.tcgetattr(fd)
+		tc[3] &= ~(termios.ICANON | termios.ECHO)
+
+		try:
+			termios.tcsetattr(fd, termios.TCSANOW, tc)
+
+			_, height = os.get_terminal_size()
+			print('\n'*(height-1),end='')
+			lines = []
+			begin = 0
+			while True:
+				_, height = os.get_terminal_size()
+				end = extend_to_range(itr, lines, begin, height, fill)
+
+				if end and len(lines)<=height and sum(map(zen.display_height, lines)) <= height:
+					return # fill is already called in extend_to_range
+
+				fill(append_eof(lines[begin:], eof, end), height)
+
+				ch = sys.stdin.read(1)
+				if ch == 'q':
+					return
+				elif ch == '\x1b':
+					ch = sys.stdin.read(2)
+					# print(ch)
+					if ch == '[A' and begin > 0:
+						begin -= 1
+					elif ch == '[B' and not (end and begin > len(lines)-2):
+						begin += 1
+					elif ch == '[5':
+						begin = max(0, begin - height)
+					elif ch == '[6':
+						if (not end) or begin+height < len(lines):
+							begin += height
+					elif ch == '[H':
+						begin = 0
+					elif ch == '[F':
+						begin = len(lines) - height
+
+		finally:
+			print()
 			termios.tcsetattr(fd, termios.TCSANOW, old)
 
 else:
