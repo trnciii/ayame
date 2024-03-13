@@ -106,11 +106,11 @@ def get_select_max_width():
 	w, _ = os.get_terminal_size()
 	return w-3
 
-def select_all(selected):
-	if all(selected):
-		return [False for _ in selected]
+def select_all(selection):
+	if all(selection):
+		return [False for _ in selection]
 	else:
-		return [True for _ in selected]
+		return [True for _ in selection]
 
 def select_display_options(cursor, li, to_string, current_page, max_page):
 	max_width = get_select_max_width()
@@ -144,7 +144,7 @@ class SinglePager:
 
 
 def fill(lines, max_height):
-	w, h = os.get_terminal_size()
+	w, _ = os.get_terminal_size()
 	clean_rows(max_height)
 	true_height = 0
 	for line in lines:
@@ -276,7 +276,7 @@ elif os.name == 'nt':
 				elif ch == b'G':
 					begin = 0
 				elif ch == b'O':
-					begin = len(lines)-height
+					begin = len(lines)-height//2
 
 
 elif os.name == 'posix':
@@ -407,7 +407,7 @@ elif os.name == 'posix':
 					elif ch == '[H':
 						begin = 0
 					elif ch == '[F':
-						begin = len(lines) - height
+						begin = len(lines) - height//2
 
 		finally:
 			print()
