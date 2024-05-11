@@ -252,7 +252,7 @@ elif os.name == 'nt':
 			_, height = os.get_terminal_size()
 			end = extend_to_range(itr, lines, begin, height, fill)
 
-			if end and len(lines)<=height and sum(map(zen.display_height, lines)) <= height:
+			if end and len(lines) < height and sum(map(zen.display_height, lines)) < height:
 				return # fill is already called in extend_to_range
 
 			fill(append_eof(lines[begin:], eof, end), height)
@@ -384,7 +384,7 @@ elif os.name == 'posix':
 				_, height = os.get_terminal_size()
 				end = extend_to_range(itr, lines, begin, height, fill)
 
-				if end and len(lines)<=height and sum(map(zen.display_height, lines)) <= height:
+				if end and len(lines) < height and sum(map(zen.display_height, lines)) < height:
 					return # fill is already called in extend_to_range
 
 				fill(append_eof(lines[begin:], eof, end), height)
