@@ -3,7 +3,7 @@ import os
 from sys import stdout
 
 def write_with_encoding(s, encoding=None, errors='backslashreplace', file=stdout):
-	file.buffer.write(s.encode(encoding if encoding else stdout.encoding, errors=errors))
+	file.buffer.write(s.encode(encoding if encoding else file.encoding, errors=errors))
 
 ptn_escape = re.compile(r'\033\[.*?m')
 
